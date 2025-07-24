@@ -36,7 +36,7 @@ def search_the_web(query: str):
 
 
 search_agent_model = genai.GenerativeModel(
-    model_name="gemini-1.5-pro-latest",
+    model_name="gemini-1.5-flash-latest",
     tools=[search_the_web] 
 )
 
