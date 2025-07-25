@@ -44,7 +44,6 @@ def scrape_website_content(url: str):
         paragraphs = soup.find_all('p')
         main_content = ' '.join([p.get_text() for p in paragraphs])
         
-        # Limit content to avoid overwhelming the model
         return main_content[:8000]
 
     except requests.RequestException as e:
@@ -53,7 +52,6 @@ def scrape_website_content(url: str):
 
 manager_agent_model = genai.GenerativeModel(
     model_name="gemini-1.5-flash-latest",
-    # The Manager now has access to ALL the tools required for the entire job.
     tools=[search_the_web, scrape_website_content],
     system_instruction="""
     You are a highly skilled research manager. Your job is to produce a detailed and comprehensive report on a user's topic.
