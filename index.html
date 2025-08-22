@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Performance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        [contenteditable="true"] {
+            outline: 2px solid transparent;
+            transition: outline-color 0.3s;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+        [contenteditable="true"]:hover,
+        [contenteditable="true"]:focus {
+            outline-color: #60a5fa; /* blue-400 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+
+        <!-- Header Section -->
+        <header class="card text-center mb-8">
+            <h1 id="main-title" contenteditable="true" class="text-3xl md:text-4xl font-extrabold text-slate-900"></h1>
+            <p class="mt-2">
+                <span id="user-name" contenteditable="true" class="text-xl font-semibold text-sky-600"></span>
+            </p>
+            <p class="mt-1 text-slate-500">
+                <span id="report-details" contenteditable="true"></span>
+            </p>
+        </header>
+
+        <!-- Executive Summary / KPIs -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">Key Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div id="kpi-revenue" class="card text-center"></div>
+                <div id="kpi-clients" class="card text-center"></div>
+                <div id="kpi-skills" class="card text-center"></div>
+            </div>
+        </section>
+
+        <!-- Client & Revenue Impact -->
+        <section class="card grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8 items-center">
+            <div class="lg:col-span-3">
+                <h2 class="text-2xl font-bold mb-2 text-slate-900">Client Growth & Business Development</h2>
+                <div class="space-y-6 mt-4">
+                    <div>
+                        <h3 id="existing-client-header" contenteditable="true" class="text-lg font-semibold text-sky-700"></h3>
+                        <p id="existing-client-detail" contenteditable="true" class="mt-1 text-slate-600"></p>
+                    </div>
+                    <div>
+                        <h3 id="new-client-header" contenteditable="true" class="text-lg font-semibold text-sky-700"></h3>
+                        <p id="new-client-detail" contenteditable="true" class="mt-1 text-slate-600"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:col-span-2">
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Development -->
+        <section class="card grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8 items-center">
+             <div class="lg:col-span-2 order-last lg:order-first">
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+            <div class="lg:col-span-3 order-first lg:order-last">
+                <h2 class="text-2xl font-bold mb-2 text-slate-900">Professional Development: Generative AI</h2>
+                <div class="mt-4 space-y-4 text-slate-600">
+                    <div>
+                        <h3 class="font-semibold text-slate-800">Completed Courses:</h3>
+                        <ul id="completed-courses" class="list-disc list-inside mt-1"></ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-800">Currently Enrolled:</h3>
+                        <ul id="enrolled-courses" class="list-disc list-inside mt-1"></ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-800">Business Application:</h3>
+                        <p id="business-application" contenteditable="true" class="mt-1 italic"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Next Steps -->
+        <section class="card">
+            <h2 class="text-2xl font-bold mb-2 text-slate-900">Looking Ahead</h2>
+            <div id="next-steps" class="mt-4 text-slate-600 space-y-2 list-disc list-inside"></div>
+        </section>
+    </div>
+
+    <script>
+        // --- EDIT YOUR DATA HERE ---
+        // All content on the page is generated from this object.
+        // You can edit the text here, or directly on the page.
+        // To update the charts, you must change the `chartData` values below.
+        const performanceData = {
+            title: "Performance Snapshot",
+            userName: "Chirag Saxena",
+            reportDetails: "",
+            kpis: [
+                { 
+                    value: "+15%", 
+                    title: "Hours Increase", 
+                    description: "from key client expansion" 
+                },
+                { 
+                    value: "2", 
+                    title: "New  analytics Clients added", 
+                    description: "" 
+                },
+                { 
+                    value: "3", 
+                    title: "AI Courses Taken", 
+                    description: "investing in future skills" 
+                }
+            ],
+            clientGrowth: {
+                existingHeader: "Increase work for Mio Amore",
+                existingDetail: "Proactively identified the client's evolving needs, leading to an increase in billable hours and added 2 new GL Dashoards.",
+                newHeader: "Landed 2 New Clients",
+                newDetail: "Successfully led the acquisition of Experis and Et team Pinky, creating new, sustainable revenue streams."
+            },
+            professionalDevelopment: {
+                completed: ["Google AI Essentials", "5-Day Gen AI Intensive"],
+                enrolled: ["Google Cloud Agentic AI Course (Advanced-level)"],
+                application: "My goal is to apply these advanced skills to future projects,improve internal processes. ."
+            },
+            nextSteps: [
+                "Excited to build on this momentum.",
+                "Open to discussing priorities for the next quarter.",
+                "Thank you & Questions?"
+            ],
+            chartData: {
+                revenue: {
+                    // Represents the +15% growth from the KPI
+                    labels: ["Last Quarter", "This Quarter"],
+                    data: [100, 115] 
+                },
+                skills: {
+                    // Represents the 3 courses taken
+                    labels: ["Completed", "In Progress"],
+                    data: [2, 1]
+                }
+            }
+        };
+        // --- END OF EDITABLE DATA ---
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate Header
+            document.getElementById('main-title').textContent = performanceData.title;
+            document.getElementById('user-name').textContent = performanceData.userName;
+            document.getElementById('report-details').textContent = performanceData.reportDetails;
+
+            // Populate KPIs
+            const kpiRevenueEl = document.getElementById('kpi-revenue');
+            kpiRevenueEl.innerHTML = `
+                <div class="text-4xl font-extrabold text-sky-600" contenteditable="true">${performanceData.kpis[0].value}</div>
+                <h3 class="mt-2 text-lg font-bold" contenteditable="true">${performanceData.kpis[0].title}</h3>
+                <p class="mt-1 text-slate-500" contenteditable="true">${performanceData.kpis[0].description}</p>
+            `;
+            const kpiClientsEl = document.getElementById('kpi-clients');
+            kpiClientsEl.innerHTML = `
+                <div class="text-4xl font-extrabold text-sky-600" contenteditable="true">${performanceData.kpis[1].value}</div>
+                <h3 class="mt-2 text-lg font-bold" contenteditable="true">${performanceData.kpis[1].title}</h3>
+                <p class="mt-1 text-slate-500" contenteditable="true">${performanceData.kpis[1].description}</p>
+            `;
+            const kpiSkillsEl = document.getElementById('kpi-skills');
+            kpiSkillsEl.innerHTML = `
+                <div class="text-4xl font-extrabold text-sky-600" contenteditable="true">${performanceData.kpis[2].value}</div>
+                <h3 class="mt-2 text-lg font-bold" contenteditable="true">${performanceData.kpis[2].title}</h3>
+                <p class="mt-1 text-slate-500" contenteditable="true">${performanceData.kpis[2].description}</p>
+            `;
+
+            // Populate Client Growth
+            document.getElementById('existing-client-header').textContent = performanceData.clientGrowth.existingHeader;
+            document.getElementById('existing-client-detail').textContent = performanceData.clientGrowth.existingDetail;
+            document.getElementById('new-client-header').textContent = performanceData.clientGrowth.newHeader;
+            document.getElementById('new-client-detail').textContent = performanceData.clientGrowth.newDetail;
+
+            // Populate Professional Development
+            const completedList = document.getElementById('completed-courses');
+            performanceData.professionalDevelopment.completed.forEach(course => {
+                const li = document.createElement('li');
+                li.textContent = course;
+                li.setAttribute('contenteditable', 'true');
+                completedList.appendChild(li);
+            });
+            const enrolledList = document.getElementById('enrolled-courses');
+            performanceData.professionalDevelopment.enrolled.forEach(course => {
+                const li = document.createElement('li');
+                li.textContent = course;
+                li.setAttribute('contenteditable', 'true');
+                enrolledList.appendChild(li);
+            });
+            document.getElementById('business-application').textContent = performanceData.professionalDevelopment.application;
+            
+            // Populate Next Steps
+            const nextStepsList = document.getElementById('next-steps');
+            performanceData.nextSteps.forEach(step => {
+                const p = document.createElement('p');
+                p.textContent = step;
+                p.setAttribute('contenteditable', 'true');
+                nextStepsList.appendChild(p);
+            });
+
+            // --- Chart Configurations ---
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: performanceData.chartData.revenue.labels,
+                    datasets: [{
+                        label: 'Relative Revenue',
+                        data: performanceData.chartData.revenue.data,
+                        backgroundColor: ['#bae6fd', '#0284c7'],
+                        borderColor: ['#7dd3fc', '#0369a1'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Hours Increase for Mio Amore' }
+                    },
+                    scales: { y: { beginAtZero: true, ticks: { callback: (value) => value + '%' } } }
+                }
+            });
+
+            const skillsCtx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(skillsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: performanceData.chartData.skills.labels,
+                    datasets: [{
+                        label: 'Courses',
+                        data: performanceData.chartData.skills.data,
+                        backgroundColor: ['#0284c7', '#fb923c'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'AI Course Status' }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

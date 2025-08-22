@@ -1,0 +1,7 @@
+pyspark==3.5.1
+snscrape==0.7.0.20230622
+vaderSentiment==3.3.2
+pandas==2.2.2
+pyarrow==15.0.2
+requests==2.32.2
+streamlit==1.36.0   # optional (for the dashboard)
